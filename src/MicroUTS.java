@@ -8,14 +8,13 @@ import ai.pvai.PVAIML_ED;
 import tests.Experimenter;
 import tests.RunConfigurableExperiments;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.PrintStream;
+import java.io.*;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Properties;
 import java.util.stream.Stream;
 
 public class MicroUTS {
@@ -90,41 +89,48 @@ public class MicroUTS {
 
     /**
      * Runs bot tests from command line
-     * @param args - Command line arguments: botfile mapsfile resultsfile iterations (specificAI) (traceDir)
-     *             where (specificAI) tells the experimenter to ignore all runs not involving the chosen AI
-     *             (indexed according to botfile). Set to -1 to use all runs if want to set trace output as well.
+     * @param args - Command line arguments: configfile resultsfile (traceDir)
+     *             where (traceDir) is optional
      *
      * @throws Exception
      */
     public static void main(String args[]) throws Exception {
-        String botfile = args[0];
-        String mapsfile = args[1];
-        String resultsfile = args[2];
-        int iterations = Integer.parseInt(args[3]);
+        String propertyFile = args[0];
+        String resultsFile = args[1];
 
-        loadBots(botfile, bots);
+        Properties prop = new Properties();
+        InputStream is = new FileInputStream(propertyFile);
+        prop.load(is);
+
+        int uttVersion = GameSettings.readIntegerProperty(prop, "UTT_version", 2);
+        int conflictPolicy = GameSettings.readIntegerProperty(prop, "conflict_policy", 1);
+        utt = new UnitTypeTable(uttVersion, conflictPolicy);
+
+        loadBots(prop.getProperty("bot_file"), bots);
         RunConfigurableExperiments.processBots(bots);
 
-        loadMaps(mapsfile, maps);
+        loadMaps(prop.getProperty("map_file"), maps);
 
-        PrintStream out = new PrintStream(new File(resultsfile));
+        PrintStream out = new PrintStream(new File(resultsFile));
 
-        int specificAI = -1;
-        if(args.length >= 5) {
-            specificAI = Integer.parseInt(args[4]);
-        }
+        int specificAI = GameSettings.readIntegerProperty(prop, "specific_AI", -1);
+        int iterations = GameSettings.readIntegerProperty(prop, "iterations", 1);
+        int max_cycles = GameSettings.readIntegerProperty(prop, "max_cycles", 3000);
+        boolean skip_self_play = Boolean.parseBoolean(prop.getProperty("skip_self_play"));
+        boolean partially_observable = Boolean.parseBoolean(prop.getProperty("partially_observable"));
+
 
         String traceDir = null;
         boolean saveTrace = false;
         boolean saveZip = false;
-        if (args.length >= 6) {
+        if (args.length >= 3) {
             saveTrace = true;
             saveZip = true;
-            traceDir = args[5];
+            traceDir = args[2];
         }
 
-        Experimenter.runExperiments(bots, maps, utt, iterations, 3000, 300, false, out,
-                specificAI, true, false, saveTrace, saveZip, traceDir);
+        Experimenter.runExperiments(bots, maps, utt, iterations, max_cycles, 300, false, out,
+                specificAI, skip_self_play, partially_observable, saveTrace, saveZip, traceDir);
 
     }
 }

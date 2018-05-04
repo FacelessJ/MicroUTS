@@ -21,15 +21,27 @@ The primary goal of this scaffolding is to easily run AI simulations from the co
 
 The current format for the command line arguments is:
 
-`microuts.jar botfile.txt mapsfile.txt resultsfile.txt iterations (specificAI) (traceDir)`
+`microuts.jar run.properties resultsfile.txt (traceDir)`
 
 where:
 
-- `botfile.txt` is a named list of bots to test, separated by new lines. Every permutation (not combination) of these bots are simulated: that is, Bot 0 vs Bot 1 and Bot 1 vs Bot 0 are simulated.
-- `mapsfile.txt` is a list of map filenames to use in testing, separated by new lines
+- `run.properties` is a configuration properties file setting all the parameters for the run:
+  - `bot_file` is a named list of bots to test, separated by new lines. Every permutation (not combination) of these bots are simulated: that is, Bot 0 vs Bot 1 and Bot 1 vs Bot 0 are simulated.
+  - `map_file` is a list of map filenames to use in testing, separated by new lines
+  - `iterations` is an integer specifying how many times each match should be repeated
+  - `specific_AI` is an optional integer to restrict simulations to only the chosen AI. i.e., `specificAI=0` results in only the matches involving the first bot in the `bot_file` will be simulated. Set to `-1` to disable
+  - `max_cycles` is an integer specifying how many cycles each game should go for before declaring a tie
+  - `partially_observable` is false if players have full vision of the map
+  - `UTT_version` specifies the Unit Type Table version:
+    - `1` = Original
+    - `2` = Original Fine-tuned
+    - `3` = Non-deterministic version of `2` (damages are random)
+  - `conflict_policy` specifies how move conflicts are handled (See [here](https://github.com/santiontanon/microrts/wiki/Game-Definition#actions)):
+    - `1` = Cancel both moves
+    - `2` = Cancel one (non-deterministic)
+    - `3` = Cancel one (deterministic)
+  -`skip_self_play` is false if each AI should play against itself
 - `resultsfile.txt` is the output location of the tests
-- `iterations` is an integer argument specifying how many times each match should be repeated
-- `(specificAI)` is an optional integer argument to restrict simulations to only the chosen AI. i.e., `specificAI=0` results in only the matches involving the first bot in the `botfile.txt` will be simulated
 - `(traceDir)` is an optional output directory to save traces to, which can be viewed by the MicroRTS GUI frontend
 
 ### Remote AI Usage
