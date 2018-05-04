@@ -1,2 +1,3 @@
-WorkerRush
+SocketAI localhost 9898
 LightRush
+WorkerRush

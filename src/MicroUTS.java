@@ -1,3 +1,4 @@
+import ai.socket.SocketAI;
 import rts.*;
 import ai.*;
 import ai.core.AI;
@@ -18,11 +19,13 @@ import java.util.List;
 import java.util.stream.Stream;
 
 public class MicroUTS {
-    static UnitTypeTable utt = new UnitTypeTable(UnitTypeTable.VERSION_ORIGINAL_FINETUNED, UnitTypeTable.MOVE_CONFLICT_RESOLUTION_CANCEL_BOTH);
+    static UnitTypeTable utt = new UnitTypeTable(UnitTypeTable.VERSION_ORIGINAL, UnitTypeTable.MOVE_CONFLICT_RESOLUTION_CANCEL_BOTH);
     private static List<AI> bots = new LinkedList<AI>();
     private static List<PhysicalGameState> maps = new LinkedList<PhysicalGameState>();
 
-    public static AI getBotExtended(String botName) {
+    public static AI getBotExtended(String botline) {
+        String[] tokens = botline.split("\\s");
+        String botName = tokens[0];
         switch (botName) {
             case "StrategyTactics":
                 try {
@@ -32,7 +35,15 @@ public class MicroUTS {
                 }
             case "PVAIML_ED":
                 return new PVAIML_ED(utt);
-            /** Todo: Add socket AI */
+            case "SocketAI":
+                try {
+                    String serverIP = tokens[1];
+                    int serverPort = Integer.parseInt(tokens[2]);
+                    return new SocketAI(100, 100, serverIP, serverPort, SocketAI.LANGUAGE_JSON, utt);
+                } catch (ArrayIndexOutOfBoundsException | NumberFormatException e) {
+                    System.err.println("SocketAI specification malformed, expected \"SocketAI <server_ip|hostname> <server_port>\", got \"" + botline + "\"");
+                    throw new RuntimeException(e);
+                }
             default:
                 return RunConfigurableExperiments.getBot(botName);
         }

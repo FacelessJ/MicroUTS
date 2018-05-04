@@ -31,3 +31,11 @@ where:
 - `iterations` is an integer argument specifying how many times each match should be repeated
 - `(specificAI)` is an optional integer argument to restrict simulations to only the chosen AI. i.e., `specificAI=0` results in only the matches involving the first bot in the `botfile.txt` will be simulated
 - `(traceDir)` is an optional output directory to save traces to, which can be viewed by the MicroRTS GUI frontend
+
+### Remote AI Usage
+
+Remote agents can be used by specifying a `SocketAI` in the `botfile` as so:
+
+`SocketAI <ip|hostname> <port>`
+
+which will create a new connection to the specified `ip:port` or `hostname:port` location each time the specified AI has a match. Multiple `SocketAI` can be used, pointing to different servers. The server should be capable of multiple connections as the experimenter clones the AI a lot, which causes many connections to the server.
